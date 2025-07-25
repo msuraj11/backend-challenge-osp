@@ -28,6 +28,9 @@ export class Task {
     @Column({ default: 1 })
     stepNumber!: number;
 
+    @Column({nullable: true})
+    runAfter!: string;
+
     @ManyToOne(() => Workflow, workflow => workflow.tasks)
     workflow!: Workflow;
 }
