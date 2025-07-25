@@ -21,9 +21,8 @@ AppDataSource.initialize()
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('Shutting down...');
       await taskWorker(false);
-      console.log('TASK STOPPED GRACEFULLY...');
+      console.log('Shutting down gracefully...');
       process.exit(0);
     });
   })

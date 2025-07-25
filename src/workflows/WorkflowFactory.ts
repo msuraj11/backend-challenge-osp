@@ -44,6 +44,7 @@ export class WorkflowFactory {
     const workflowRepository = this.dataSource.getRepository(Workflow);
     const taskRepository = this.dataSource.getRepository(Task);
 
+    // Create workflow
     const workflow = new Workflow();
     workflow.clientId = clientId;
     workflow.status = WorkflowStatus.Initial;
@@ -51,10 +52,11 @@ export class WorkflowFactory {
     const savedWorkflow = await workflowRepository.save(workflow);
     console.log('SAVED WORKFLOW...', savedWorkflow);
 
+    // Create tasks
     const tasks: Task[] = [];
     const taskIdMap = new Map<number, string>();
 
-    workflowDef.steps.forEach(async (step) => {
+    for (const step of workflowDef.steps) {
       const task = new Task();
       task.clientId = clientId;
       task.geoJson = geoJson;
@@ -66,18 +68,19 @@ export class WorkflowFactory {
       const savedTask = await taskRepository.save(task);
       tasks.push(savedTask);
       taskIdMap.set(step.stepNumber, savedTask.taskId);
-    });
+    }
 
-    workflowDef.steps.forEach(async (step, index) => {
+    for (let i = 0; i < workflowDef.steps.length; i++) {
+      const step = workflowDef.steps[i];
       if (step.runAfter) {
         const dependentStepNumber = parseInt(step.runAfter);
         const dependentTaskId = taskIdMap.get(dependentStepNumber);
         if (dependentTaskId) {
-          tasks[index].runAfter = dependentTaskId;
-          await taskRepository.save(tasks[index]);
+          tasks[i].runAfter = dependentTaskId;
+          await taskRepository.save(tasks[i]);
         }
       }
-    });
+    }
 
     savedWorkflow.tasks = tasks;
     return savedWorkflow;
