@@ -28,25 +28,24 @@ export class TaskRunner {
 
     try {
       console.log(`Starting job ${task.taskType} for task ${task.taskId}...`);
-      const resultRepository =
-        this.taskRepository.manager.getRepository(Result);
+      const resultRepository = this.taskRepository.manager.getRepository(Result);
+
+      // Execure each job and store the result in Result table.
       const taskResult = await job.run(task);
-      console.log(
-        `Job ${task.taskType} for task ${task.taskId} completed successfully.`
-      );
+      console.log(`Job ${task.taskType} for task ${task.taskId} completed successfully.`);
       const result = new Result();
       result.taskId = task.taskId!;
+      result.taskType = task.taskType;
       result.data = JSON.stringify(taskResult || {});
       await resultRepository.save(result);
+
+      // Save result data in Task table
       task.resultId = result.resultId!;
       task.status = TaskStatus.Completed;
       task.progress = null;
       await this.taskRepository.save(task);
     } catch (error: any) {
-      console.error(
-        `Error running job ${task.taskType} for task ${task.taskId}:`,
-        error
-      );
+      console.error(`Error running job ${task.taskType} for task ${task.taskId}:`, error);
 
       task.status = TaskStatus.Failed;
       task.progress = null;
@@ -55,20 +54,15 @@ export class TaskRunner {
       throw error;
     }
 
-    const workflowRepository =
-      this.taskRepository.manager.getRepository(Workflow);
+    const workflowRepository = this.taskRepository.manager.getRepository(Workflow);
     const currentWorkflow = await workflowRepository.findOne({
       where: {workflowId: task.workflow.workflowId},
       relations: ['tasks']
     });
 
     if (currentWorkflow) {
-      const allCompleted = currentWorkflow.tasks.every(
-        (t) => t.status === TaskStatus.Completed
-      );
-      const anyFailed = currentWorkflow.tasks.some(
-        (t) => t.status === TaskStatus.Failed
-      );
+      const allCompleted = currentWorkflow.tasks.every((t) => t.status === TaskStatus.Completed);
+      const anyFailed = currentWorkflow.tasks.some((t) => t.status === TaskStatus.Failed);
 
       if (anyFailed) {
         currentWorkflow.status = WorkflowStatus.Failed;

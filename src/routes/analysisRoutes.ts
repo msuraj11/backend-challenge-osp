@@ -7,13 +7,26 @@ const router = Router();
 const workflowFactory = new WorkflowFactory(AppDataSource);
 
 router.post('/', async (req, res) => {
-  const {clientId, geoJson} = req.body;
-  const workflowFile = path.join(
-    __dirname,
-    '../workflows/example_workflow.yml'
-  );
-
   try {
+    const {clientId, geoJson} = req.body;
+
+    if (!clientId || !geoJson) {
+      throw new Error('Invalid input: clientId and geoJson are required.');
+    }
+
+    if (!geoJson) {
+      throw new Error('Invalid input: No geoJson provided for area calculation.');
+    }
+
+    if (!('type' in geoJson) || !('coordinates' in geoJson)) {
+      throw new Error('Invalid input: Expected type and coordinates properties in geoJson.');
+    }
+
+    if (geoJson?.type !== 'Polygon') {
+      throw new Error('Invalid input: Expected Polygon type in geoJson');
+    }
+
+    const workflowFile = path.join(__dirname, '../workflows/example_workflow.yml');
     const workflow = await workflowFactory.createWorkflowFromYAML(
       workflowFile,
       clientId,
@@ -27,7 +40,11 @@ router.post('/', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error creating workflow:', error);
-    res.status(500).json({message: 'Failed to create workflow'});
+    if (error instanceof Error && error.message.includes('Invalid input:')) {
+      res.status(400).json({message: error.message});
+    } else {
+      res.status(500).json({message: 'Failed to create workflow'});
+    }
   }
 });
 

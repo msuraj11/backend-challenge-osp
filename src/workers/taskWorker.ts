@@ -24,15 +24,12 @@ export async function taskWorker(start = true) {
           await taskRunner.run(task);
         }
       });
-
-      // Wait before checking for the next taskInQueue again
-      await new Promise((resolve) => setTimeout(resolve, 5000));
     } catch (error) {
-      console.error(
-        'Task execution failed. Task status has already been updated by TaskRunner.'
-      );
+      console.error('Task execution failed. Task status has already been updated by TaskRunner.');
       console.error(error);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+    } finally {
+      // Wait before checking for the next taskInQueue again
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 }

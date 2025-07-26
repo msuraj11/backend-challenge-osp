@@ -15,13 +15,11 @@ export class DataAnalysisJob implements Job {
         countryFeature.geometry.type === 'Polygon' ||
         countryFeature.geometry.type === 'MultiPolygon'
       ) {
-        const isWithin = booleanWithin(
-          inputGeometry,
-          countryFeature as Feature<Polygon>
-        );
+        const isWithin = booleanWithin(inputGeometry, countryFeature as Feature<Polygon>);
         if (isWithin) {
           const output = `The polygon is within ${countryFeature.properties?.name}`;
           console.log(output);
+          task.output = output;
           return output;
         }
       }

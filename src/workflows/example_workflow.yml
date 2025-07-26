@@ -2,9 +2,9 @@ name: 'example_workflow'
 steps:
   - taskType: 'analysis'
     stepNumber: 1
-  # - taskType: "calculatePolygonArea"
-  #   stepNumber: 2
-  #   runAfter: "1"
-  - taskType: 'notification'
+  - taskType: 'calculatePolygonArea'
     stepNumber: 2
     runAfter: '1'
+  - taskType: 'notification'
+    stepNumber: 3
+    runAfter: '2'
