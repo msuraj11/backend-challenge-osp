@@ -15,11 +15,6 @@ router.post('/', async (req, res) => {
       return;
     }
 
-    if (!geoJson) {
-      res.status(400).json({error: 'Invalid input: No geoJson provided for area calculation.'});
-      return;
-    }
-
     if (!('type' in geoJson) || !('coordinates' in geoJson)) {
       res
         .status(400)
@@ -28,7 +23,7 @@ router.post('/', async (req, res) => {
     }
 
     if (geoJson?.type !== 'Polygon') {
-      res.status(400).json({error: 'Invalid input: Expected Polygon type in geoJson'});
+      res.status(400).json({error: 'Invalid input: Expected Polygon type in geoJson.'});
       return;
     }
 
