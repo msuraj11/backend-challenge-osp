@@ -11,19 +11,25 @@ router.post('/', async (req, res) => {
     const {clientId, geoJson} = req.body;
 
     if (!clientId || !geoJson) {
-      throw new Error('Invalid input: clientId and geoJson are required.');
+      res.status(400).json({error: 'Invalid input: clientId and geoJson are required.'});
+      return;
     }
 
     if (!geoJson) {
-      throw new Error('Invalid input: No geoJson provided for area calculation.');
+      res.status(400).json({error: 'Invalid input: No geoJson provided for area calculation.'});
+      return;
     }
 
     if (!('type' in geoJson) || !('coordinates' in geoJson)) {
-      throw new Error('Invalid input: Expected type and coordinates properties in geoJson.');
+      res
+        .status(400)
+        .json({error: 'Invalid input: Expected type and coordinates properties in geoJson.'});
+      return;
     }
 
     if (geoJson?.type !== 'Polygon') {
-      throw new Error('Invalid input: Expected Polygon type in geoJson');
+      res.status(400).json({error: 'Invalid input: Expected Polygon type in geoJson'});
+      return;
     }
 
     const workflowFile = path.join(__dirname, '../workflows/example_workflow.yml');
@@ -40,11 +46,7 @@ router.post('/', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error creating workflow:', error);
-    if (error instanceof Error && error.message.includes('Invalid input:')) {
-      res.status(400).json({message: error.message});
-    } else {
-      res.status(500).json({message: 'Failed to create workflow'});
-    }
+    res.status(500).json({message: 'Failed to create workflow'});
   }
 });
 

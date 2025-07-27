@@ -12,7 +12,7 @@ export class PolygonAreaJob implements Job {
       const result = {
         area: plygonArea,
         unit: 'square meters',
-        calculatedAt: new Date().toISOString()
+        calculatedOn: new Date().toISOString()
       };
 
       return JSON.stringify(result);

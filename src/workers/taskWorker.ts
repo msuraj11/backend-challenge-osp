@@ -5,7 +5,7 @@ import {TaskRunner, TaskStatus} from './taskRunner';
 export async function taskWorker(start = true) {
   const taskRepository = AppDataSource.getRepository(Task);
   const taskRunner = new TaskRunner(taskRepository);
-  console.log(`TASK RUNNER ${start ? 'STARTED' : 'STOPPED'}...`);
+  console.log(`TASK WORKER ${start ? 'STARTED' : 'STOPPED'}...`);
 
   while (start) {
     try {
@@ -13,7 +13,13 @@ export async function taskWorker(start = true) {
         where: {status: TaskStatus.Queued},
         relations: ['workflow'] // Ensure workflow is loaded
       });
+      const failedTasks = await taskRepository.find({
+        where: {status: TaskStatus.Failed},
+        relations: ['workflow']
+      });
       console.log('WATCHING TASKS......');
+      console.log(`Pending Tasks -------------- ${tasksInQueue.length}`);
+      console.log(`Failed Tasks  -------------- ${failedTasks.length}`);
 
       for (const task of tasksInQueue) {
         const previousTask = await taskRepository.findOne({
@@ -21,14 +27,8 @@ export async function taskWorker(start = true) {
         });
         if (!task?.dependsOn || previousTask?.status === 'completed') {
           console.log(`------TaskId: ${task.taskId}--------`);
-          console.log(`Running Task ${task.taskType} - ${task.taskId}`);
+          console.log(`Running Task ${task.taskType}....`);
           await taskRunner.run(task);
-        } else {
-          console.log(
-            `Pending to run ${task.status} task: ${task.taskType} of workflow: ${task.workflow.workflowId}.
-            As previous task: ${previousTask?.taskType} has status: ${previousTask?.status}
-            --------------------------------------------`
-          );
         }
       }
     } catch (error) {

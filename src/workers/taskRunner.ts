@@ -83,6 +83,7 @@ export class TaskRunner {
             output: r.data ? JSON.parse(r.data) : null
           }))
         });
+        console.log('---------- END OF WORKFLOW -----------');
       } else {
         currentWorkflow.status = WorkflowStatus.InProgress;
       }
