@@ -104,7 +104,6 @@ src
 │
 ├─ workers/
 │   ├─ taskWorker.ts    # Background worker that fetches queued tasks & runs them
-function for mapping taskType to a Job
 │   ├─ TaskRunner.ts    # Handles job
 │
 ├─ routes/
