@@ -13,17 +13,24 @@ export async function taskWorker(start = true) {
         where: {status: TaskStatus.Queued},
         relations: ['workflow'] // Ensure workflow is loaded
       });
-      console.log(tasksInQueue, 'WATCHING TASKS......');
+      console.log('WATCHING TASKS......');
 
-      tasksInQueue.forEach(async (task) => {
-        const runAfterTask = await taskRepository.findOne({
-          where: {taskId: task?.runAfter}
+      for (const task of tasksInQueue) {
+        const previousTask = await taskRepository.findOne({
+          where: {taskId: task?.dependsOn}
         });
-        if (!task?.runAfter || runAfterTask?.status === 'completed') {
+        if (!task?.dependsOn || previousTask?.status === 'completed') {
+          console.log(`------TaskId: ${task.taskId}--------`);
           console.log(`Running Task ${task.taskType} - ${task.taskId}`);
           await taskRunner.run(task);
+        } else {
+          console.log(
+            `Pending to run ${task.status} task: ${task.taskType} of workflow: ${task.workflow.workflowId}.
+            As previous task: ${previousTask?.taskType} has status: ${previousTask?.status}
+            --------------------------------------------`
+          );
         }
-      });
+      }
     } catch (error) {
       console.error('Task execution failed. Task status has already been updated by TaskRunner.');
       console.error(error);

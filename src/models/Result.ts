@@ -1,4 +1,5 @@
-import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn} from 'typeorm';
+import {Workflow} from './Workflow';
 
 @Entity({name: 'results'})
 export class Result {
@@ -13,4 +14,8 @@ export class Result {
 
   @Column('text')
   data!: string | null; // Could be JSON or any serialized format
+
+  @ManyToOne(() => Workflow, (workflow) => workflow.workflowId)
+  @JoinColumn({name: 'workflowId'})
+  workflow?: Workflow;
 }

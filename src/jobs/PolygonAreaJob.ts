@@ -15,10 +15,7 @@ export class PolygonAreaJob implements Job {
         calculatedAt: new Date().toISOString()
       };
 
-      const output = JSON.stringify(result);
-
-      task.output = output;
-      return output;
+      return JSON.stringify(result);
     } catch (error: any) {
       throw new Error(`Polygon area calculation failed: ${error.message}`);
     }

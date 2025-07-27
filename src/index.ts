@@ -27,6 +27,6 @@ AppDataSource.initialize()
     });
   })
   .catch((error) => {
-    console.log(error);
-    process.exit(1);
+    console.log(error, '-------------------END----------');
+    //process.exit(1);
   });

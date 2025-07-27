@@ -21,14 +21,13 @@ export class TaskRunner {
    * @throws If the job fails, it rethrows the error.
    */
   async run(task: Task): Promise<void> {
-    task.status = TaskStatus.InProgress;
-    task.progress = 'starting job...';
-    await this.taskRepository.save(task);
-    const job = getJobForTaskType(task.taskType);
-
+    const resultRepository = this.taskRepository.manager.getRepository(Result);
     try {
+      task.status = TaskStatus.InProgress;
+      task.progress = 'starting job...';
+      await this.taskRepository.save(task);
+      const job = getJobForTaskType(task.taskType);
       console.log(`Starting job ${task.taskType} for task ${task.taskId}...`);
-      const resultRepository = this.taskRepository.manager.getRepository(Result);
 
       // Execure each job and store the result in Result table.
       const taskResult = await job.run(task);
@@ -36,13 +35,15 @@ export class TaskRunner {
       const result = new Result();
       result.taskId = task.taskId!;
       result.taskType = task.taskType;
-      result.data = JSON.stringify(taskResult || {});
+      result.data = taskResult;
+      result.workflow = task.workflow;
       await resultRepository.save(result);
 
       // Save result data in Task table
       task.resultId = result.resultId!;
       task.status = TaskStatus.Completed;
       task.progress = null;
+      task.output = taskResult;
       await this.taskRepository.save(task);
     } catch (error: any) {
       console.error(`Error running job ${task.taskType} for task ${task.taskId}:`, error);
@@ -59,6 +60,9 @@ export class TaskRunner {
       where: {workflowId: task.workflow.workflowId},
       relations: ['tasks']
     });
+    const currentWorkflowResult = await resultRepository.find({
+      where: {workflow: {workflowId: task.workflow.workflowId}}
+    });
 
     if (currentWorkflow) {
       const allCompleted = currentWorkflow.tasks.every((t) => t.status === TaskStatus.Completed);
@@ -68,6 +72,17 @@ export class TaskRunner {
         currentWorkflow.status = WorkflowStatus.Failed;
       } else if (allCompleted) {
         currentWorkflow.status = WorkflowStatus.Completed;
+        currentWorkflow.finalResult = JSON.stringify({
+          completedAt: new Date().toISOString(),
+          tasksCompleted: currentWorkflow.tasks.filter((t) => t.status === TaskStatus.Completed)
+            .length,
+          totalTasks: currentWorkflow.tasks.length,
+          results: currentWorkflowResult.map((r) => ({
+            taskId: r.taskId,
+            taskType: r.taskType,
+            output: r.data ? JSON.parse(r.data) : null
+          }))
+        });
       } else {
         currentWorkflow.status = WorkflowStatus.InProgress;
       }

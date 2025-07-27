@@ -9,11 +9,11 @@ export class EmailNotificationJob implements Job {
       await new Promise((resolve) => setTimeout(resolve, 500));
       console.log('Email sent!');
 
-      const output = `Email sent to ${
-        task.clientId
-      } on ${new Date().toISOString()}, Task completed.`;
-
-      task.output = output;
+      const output = JSON.stringify({
+        emailSent: true,
+        subject: 'Workflow has been completed.',
+        summary: `Email sent to ${task.clientId} on ${new Date().toISOString()}, Task completed.`
+      });
       return output;
     } catch (error: any) {
       throw new Error(`Email notification failed: ${error.message}`);

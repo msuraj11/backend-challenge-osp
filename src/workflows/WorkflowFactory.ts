@@ -15,7 +15,7 @@ export enum WorkflowStatus {
 interface WorkflowStep {
   taskType: string;
   stepNumber: number;
-  runAfter?: string;
+  dependsOn?: string;
 }
 
 interface WorkflowDefinition {
@@ -51,7 +51,7 @@ export class WorkflowFactory {
 
     const savedWorkflow = await workflowRepository.save(workflow);
     console.log('SAVED WORKFLOW...', savedWorkflow);
-
+    console.log(`-------------WorkFlowId: ${savedWorkflow.workflowId}-----------------`);
     // Create tasks
     const tasks: Task[] = [];
     const taskIdMap = new Map<number, string>();
@@ -72,11 +72,11 @@ export class WorkflowFactory {
 
     for (let i = 0; i < workflowDef.steps.length; i++) {
       const step = workflowDef.steps[i];
-      if (step.runAfter) {
-        const dependentStepNumber = parseInt(step.runAfter);
+      if (step.dependsOn) {
+        const dependentStepNumber = parseInt(step.dependsOn);
         const dependentTaskId = taskIdMap.get(dependentStepNumber);
         if (dependentTaskId) {
-          tasks[i].runAfter = dependentTaskId;
+          tasks[i].dependsOn = dependentTaskId;
           await taskRepository.save(tasks[i]);
         }
       }

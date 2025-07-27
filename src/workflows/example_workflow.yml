@@ -4,7 +4,10 @@ steps:
     stepNumber: 1
   - taskType: 'calculatePolygonArea'
     stepNumber: 2
-    runAfter: '1'
-  - taskType: 'notification'
+    dependsOn: '1'
+  - taskType: 'reportGeneration'
     stepNumber: 3
-    runAfter: '2'
+    dependsOn: '2'
+  - taskType: 'notification'
+    stepNumber: 4
+    dependsOn: '3'

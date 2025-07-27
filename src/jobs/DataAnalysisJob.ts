@@ -17,9 +17,12 @@ export class DataAnalysisJob implements Job {
       ) {
         const isWithin = booleanWithin(inputGeometry, countryFeature as Feature<Polygon>);
         if (isWithin) {
-          const output = `The polygon is within ${countryFeature.properties?.name}`;
-          console.log(output);
-          task.output = output;
+          const output = JSON.stringify({
+            polygonType: inputGeometry.type,
+            coordinatesCount: JSON.parse(task.geoJson)?.coordinates?.[0]?.length || 0,
+            summary: `The polygon is within ${countryFeature.properties?.name}`,
+            analysisDoneOn: new Date().toISOString()
+          });
           return output;
         }
       }
